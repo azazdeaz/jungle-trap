@@ -1,16 +1,15 @@
 // triangle base width including rounding
 size = 1;
 // radius of the edge rounding
-rounding = .010;
-//triangle side length w/o rounding
-side = (size - rounding*2) + rounding/tan(30) * 2;
-echo("side" ,side);
-// triangle height w/o rounding
-height = sqrt(3)/2 * side;
-echo("height" ,height);
+rounding = .100;
 
 // right side of the top third triangle section
-module section() {
+module section(size, rounding) {
+    //triangle side length w/o rounding
+    side = (size - rounding*2) + rounding/tan(30) * 2;
+    // triangle height w/o rounding
+    height = sqrt(3)/2 * side;
+    // triangle center
     ox = 0;
     oy = 0;
     // length of the line from the center to a side (perpendicular)
@@ -19,8 +18,8 @@ module section() {
     ax = ox + cos(30) * oa;
     ay = oy + sin(30) * oa;
     // length from triangle center to a corner
-    raw_height = sqrt(pow(height/2,2) + pow(oa,2));
-    rounding_center = raw_height - (side-size)/2 - rounding;
+    raw_height = side*sqrt(3)/3;
+    rounding_center = raw_height - rounding * 2;
     echo("rounding_center", rounding_center);
     arc = [for (i=[30:2:90]) [
         cos(i)*rounding, 
@@ -28,19 +27,23 @@ module section() {
     ]];
     polygon(concat([[ox,oy],[ax,ay]], arc));
 }
-module third() {
-    section();
+module third(size, rounding) {
+    section(size, rounding);
     mirror([1,0,0])
-    section();
+    section(size, rounding);
 }
 
-module stick_profile() {
+module stick_profile(size, rounding) {
     for (i = [0,120,240]) {
         rotate([0,0,i])
-        third();
+        third(size, rounding);
     }
 }
-linear_extrude(5)
-stick_profile();
 
-section();
+module stick(width, rounding, length) {
+    linear_extrude(length)
+    stick_profile(width, rounding);
+}
+
+
+stick(size, rounding, 5);
